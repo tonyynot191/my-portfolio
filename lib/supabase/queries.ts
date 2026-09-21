@@ -65,3 +65,28 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
   if (error || !data) return null;
   return toProject(data as DbProject);
 }
+export type Comment = {
+  id: string;
+  name: string;
+  content: string;
+  createdAt: string;
+};
+
+export async function getComments(projectId: string): Promise<Comment[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("comments")
+    .select("id, name, content, created_at")
+    .eq("project_id", projectId)
+    .eq("approved", true)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    id: row.id,
+    name: row.name,
+    content: row.content,
+    createdAt: row.created_at,
+  }));
+}

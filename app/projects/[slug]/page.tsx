@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getProjectBySlug } from "@/lib/supabase/queries";
+import { getProjectBySlug, getComments } from "@/lib/supabase/queries";
+import LikeButton from "@/components/projects/LikeButton";
+import CommentForm from "@/components/comments/CommentForm";
 
 export default async function ProjectPage({
   params,
@@ -13,6 +15,8 @@ export default async function ProjectPage({
   if (!project) {
     notFound();
   }
+
+  const comments = await getComments(project.id);
 
   return (
     <article className="max-w-3xl mx-auto px-6 py-20">
@@ -62,13 +66,62 @@ export default async function ProjectPage({
         )}
       </div>
 
+      <div className="flex items-center gap-4 mb-10">
+        <LikeButton projectId={project.id} />
+      </div>
+
       <div className="aspect-video rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center mb-10">
         <span className="text-gray-600 text-sm">Project screenshot coming soon</span>
       </div>
 
-      <div className="prose prose-invert max-w-none">
+      <div className="prose prose-invert max-w-none mb-16">
         <p className="text-gray-300 leading-relaxed">{project.description}</p>
       </div>
+
+      {/* Comments section */}
+      <section className="border-t border-gray-800 pt-10">
+        <h2 className="text-2xl font-bold text-white mb-6">
+          Comments {comments.length > 0 && (
+            <span className="text-gray-500 font-normal text-lg">
+              ({comments.length})
+            </span>
+          )}
+        </h2>
+
+        {comments.length === 0 ? (
+          <p className="text-gray-500 text-sm mb-8">
+            No comments yet. Be the first!
+          </p>
+        ) : (
+          <ul className="space-y-6 mb-10">
+            {comments.map((comment) => (
+              <li
+                key={comment.id}
+                className="rounded-xl border border-gray-800 bg-gray-900/40 p-5"
+              >
+                <div className="flex items-baseline justify-between mb-2">
+                  <span className="font-semibold text-white text-sm">
+                    {comment.name}
+                  </span>
+                  <time className="text-xs text-gray-500">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </time>
+                </div>
+                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">
+                  {comment.content}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-white mb-4">
+            Leave a comment
+          </h3>
+          <CommentForm projectId={project.id} />
+        </div>
+      </section>
     </article>
   );
 }
