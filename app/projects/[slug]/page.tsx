@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { projects } from "@/lib/data";
+import { getProjectBySlug } from "@/lib/supabase/queries";
 
 export default async function ProjectPage({
   params,
@@ -8,7 +8,7 @@ export default async function ProjectPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = projects.find((p) => p.slug === slug);
+  const project = await getProjectBySlug(slug);
 
   if (!project) {
     notFound();
