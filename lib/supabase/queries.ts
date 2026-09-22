@@ -18,6 +18,9 @@ type DbProject = {
   live_url: string | null;
   github_url: string | null;
   video_url: string | null;
+  status: string;
+  featured: boolean;
+  display_order: number;
 };
 
 function toProject(row: DbProject): Project {
@@ -38,6 +41,9 @@ function toProject(row: DbProject): Project {
     liveUrl: row.live_url ?? undefined,
     githubUrl: row.github_url ?? undefined,
     videoUrl: row.video_url ?? undefined,
+    status: row.status,
+    featured: row.featured,
+    displayOrder: row.display_order,
   };
 }
 
@@ -65,6 +71,30 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
   if (error || !data) return null;
   return toProject(data as DbProject);
 }
+
+export async function getAllProjects(): Promise<Project[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .order("display_order", { ascending: true });
+
+  if (error || !data) return [];
+  return (data as DbProject[]).map(toProject);
+}
+
+export async function getProjectById(id: string): Promise<Project | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+  return toProject(data as DbProject);
+}
+
 export type Comment = {
   id: string;
   name: string;
@@ -90,6 +120,7 @@ export async function getComments(projectId: string): Promise<Comment[]> {
     createdAt: row.created_at,
   }));
 }
+
 export type PendingComment = {
   id: string;
   projectId: string;
@@ -144,4 +175,13 @@ export async function getAdminStats() {
     totalComments: totalComments.count ?? 0,
     unreadMessages: messages.count ?? 0,
   };
+}
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }

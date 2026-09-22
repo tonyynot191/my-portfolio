@@ -15,4 +15,7 @@ export type Project = {
   liveUrl?: string;
   githubUrl?: string;
   videoUrl?: string;
+  status?: string;
+  featured?: boolean;
+  displayOrder?: number;
 };
