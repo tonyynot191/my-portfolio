@@ -1,8 +1,30 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getProjectBySlug, getComments } from "@/lib/supabase/queries";
 import LikeButton from "@/components/projects/LikeButton";
 import CommentForm from "@/components/comments/CommentForm";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
+
+  if (!project) return { title: "Project Not Found" };
+
+  return {
+    title: project.title,
+    description: project.tagline,
+    openGraph: {
+      title: project.title,
+      description: project.tagline,
+      type: "article",
+    },
+  };
+}
 
 export default async function ProjectPage({
   params,
@@ -71,7 +93,9 @@ export default async function ProjectPage({
       </div>
 
       <div className="aspect-video rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center mb-10">
-        <span className="text-gray-600 text-sm">Project screenshot coming soon</span>
+        <span className="text-gray-600 text-sm">
+          Project screenshot coming soon
+        </span>
       </div>
 
       <div className="prose prose-invert max-w-none mb-16">
@@ -81,7 +105,8 @@ export default async function ProjectPage({
       {/* Comments section */}
       <section className="border-t border-gray-800 pt-10">
         <h2 className="text-2xl font-bold text-white mb-6">
-          Comments {comments.length > 0 && (
+          Comments{" "}
+          {comments.length > 0 && (
             <span className="text-gray-500 font-normal text-lg">
               ({comments.length})
             </span>

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { slugify } from "@/lib/supabase/queries";
+import { slugify } from "@/lib/utils";
 import type { Project } from "@/lib/data";
 
 type Props = {
