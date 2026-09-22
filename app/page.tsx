@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getProjects } from "@/lib/supabase/queries";
 import ProjectCard from "@/components/projects/ProjectCard";
 
@@ -6,35 +7,136 @@ export default async function Home() {
   const allProjects = await getProjects();
   const featured = allProjects.filter((p) => p.featured).slice(0, 3);
 
+  const hasPhoto = false; // set to false to use the placeholder below
+
   return (
     <>
       {/* HERO */}
-      <section className="min-h-[85vh] flex flex-col items-center justify-center px-6">
-        <div className="max-w-3xl text-center">
-          <p className="text-sm text-gray-500 mb-4 tracking-wide uppercase">
-            Full-Stack Web Developer
-          </p>
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-white mb-6">
-            Hi, I&apos;m Tony.
-          </h1>
-          <p className="text-xl text-gray-400 mb-10 max-w-xl mx-auto">
-            I build fast, accessible, and modern web applications — from
-            database to polished UI.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link
-              href="/projects"
-              className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition"
-            >
-              View My Work
-            </Link>
-            <Link
-              href="/contact"
-              className="border border-gray-600 px-6 py-3 rounded-lg font-medium hover:border-white transition"
-            >
-              Contact Me
-            </Link>
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-6">
+        {/* Grid background */}
+        <div
+          className="absolute inset-0 opacity-[0.15]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)`,
+            backgroundSize: "60px 60px",
+            maskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%)",
+          }}
+        />
+
+        {/* Animated gradient blobs */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full bg-purple-600/30 blur-[100px] animate-blob" />
+          <div className="absolute top-40 -right-20 w-[500px] h-[500px] rounded-full bg-blue-600/30 blur-[100px] animate-blob animation-delay-2000" />
+          <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] rounded-full bg-cyan-500/20 blur-[100px] animate-blob animation-delay-4000" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center py-20">
+          {/* Left: text */}
+          <div className="text-center lg:text-left animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-xs font-medium mb-6">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              Available for work
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
+              Hi, I&apos;m Tony.
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                Full-Stack Developer.
+              </span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-xl mx-auto lg:mx-0">
+              I build fast, accessible, and modern web applications — from
+              database to polished UI.
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-10">
+              <Link
+                href="/projects"
+                className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition"
+              >
+                View My Work
+              </Link>
+              <Link
+                href="/contact"
+                className="border border-gray-700 px-6 py-3 rounded-lg font-medium text-white hover:border-gray-400 transition"
+              >
+                Contact Me
+              </Link>
+            </div>
+
+            <div className="flex gap-6 justify-center lg:justify-start text-sm text-gray-500">
+              <a
+                href="https://github.com/tonyynot191"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition"
+              >
+                GitHub
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition"
+              >
+                LinkedIn
+              </a>
+              <a
+                href="https://x.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition"
+              >
+                X
+              </a>
+            </div>
           </div>
+
+          {/* Right: photo or fallback */}
+          <div className="flex justify-center lg:justify-end animate-fade-in-up animation-delay-200">
+            <div className="relative animate-float">
+              {/* Glow behind photo */}
+              <div className="absolute -inset-4 bg-gradient-to-tr from-purple-600/40 via-blue-600/40 to-cyan-500/40 rounded-full blur-3xl opacity-70" />
+
+              {/* Photo container */}
+              <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden border-2 border-gray-800 bg-gradient-to-br from-gray-800 to-gray-900">
+                {hasPhoto ? (
+                  <Image
+                    src="/tony.jpg"
+                    alt="Tony — Full-Stack Web Developer"
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="(max-width: 768px) 256px, (max-width: 1024px) 320px, 384px"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-7xl md:text-8xl font-bold bg-gradient-to-br from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                      T
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Decorative ring */}
+              <div className="absolute inset-0 rounded-full border border-white/10 -m-6" />
+            </div>
+          </div>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center gap-2 text-gray-600 animate-fade-in-up animation-delay-600">
+          <span className="text-xs tracking-widest uppercase">Scroll</span>
+          <div className="w-px h-8 bg-gradient-to-b from-gray-600 to-transparent" />
         </div>
       </section>
 
