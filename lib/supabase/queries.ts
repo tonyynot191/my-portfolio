@@ -90,3 +90,58 @@ export async function getComments(projectId: string): Promise<Comment[]> {
     createdAt: row.created_at,
   }));
 }
+export type PendingComment = {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  name: string;
+  email: string;
+  content: string;
+  createdAt: string;
+};
+
+export async function getAllComments(): Promise<PendingComment[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("comments")
+    .select(
+      "id, project_id, name, email, content, approved, created_at, projects(title)"
+    )
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  return data.map((row: any) => ({
+    id: row.id,
+    projectId: row.project_id,
+    projectTitle: row.projects?.title ?? "Unknown",
+    name: row.name,
+    email: row.email,
+    content: row.content,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function getAdminStats() {
+  const supabase = await createClient();
+
+  const [projects, pendingComments, totalComments, messages] = await Promise.all([
+    supabase.from("projects").select("*", { count: "exact", head: true }),
+    supabase
+      .from("comments")
+      .select("*", { count: "exact", head: true })
+      .eq("approved", false),
+    supabase.from("comments").select("*", { count: "exact", head: true }),
+    supabase
+      .from("contact_messages")
+      .select("*", { count: "exact", head: true })
+      .eq("read", false),
+  ]);
+
+  return {
+    projects: projects.count ?? 0,
+    pendingComments: pendingComments.count ?? 0,
+    totalComments: totalComments.count ?? 0,
+    unreadMessages: messages.count ?? 0,
+  };
+}
