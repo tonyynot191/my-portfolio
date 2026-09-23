@@ -11,6 +11,14 @@ const APPS = [
 
 type AppValue = (typeof APPS)[number]["value"];
 
+type Errors = {
+  name?: string;
+  email?: string;
+  phone?: string;
+  preferredApp?: string;
+  message?: string;
+};
+
 export default function ContactForm({
   source = "contact",
 }: {
@@ -23,29 +31,63 @@ export default function ContactForm({
   const [phone, setPhone] = useState("");
   const [preferredApp, setPreferredApp] = useState<AppValue | "">("");
   const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<
     "idle" | "loading" | "sent" | "error"
   >("idle");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [serverError, setServerError] = useState("");
+
+  function validate(): Errors {
+    const next: Errors = {};
+
+    if (!name.trim()) next.name = "Please enter your name.";
+    if (name.trim().length > 80) next.name = "Name is too long.";
+
+    if (!email.trim()) {
+      next.email = "Please enter your email.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      next.email = "Please enter a valid email address.";
+    }
+
+    if (isHire) {
+      if (!phone.trim()) {
+        next.phone = "Please enter your phone number.";
+      } else if (phone.replace(/\D/g, "").length < 7) {
+        next.phone = "Please enter a valid phone number with country code.";
+      }
+      if (!preferredApp) {
+        next.preferredApp = "Please select a preferred contact app.";
+      }
+    }
+
+    if (!message.trim()) {
+      next.message = "Please enter a message.";
+    } else if (message.trim().length < 5) {
+      next.message = "Message must be at least 5 characters.";
+    }
+
+    return next;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setStatus("loading");
-    setErrorMessage("");
 
-    // Hire-specific client validation
-    if (isHire) {
-      if (phone.replace(/\D/g, "").length < 7) {
-        setErrorMessage("Please enter a valid phone number.");
-        setStatus("error");
-        return;
-      }
-      if (!preferredApp) {
-        setErrorMessage("Please select your preferred contact app.");
-        setStatus("error");
-        return;
-      }
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      // Focus the first invalid field
+      const firstKey = Object.keys(validationErrors)[0];
+      const el = document.querySelector<HTMLElement>(
+        `[data-field="${firstKey}"]`
+      );
+      el?.focus();
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
     }
+
+    setErrors({});
+    setStatus("loading");
+    setServerError("");
 
     try {
       const res = await fetch("/api/contact", {
@@ -64,7 +106,7 @@ export default function ContactForm({
       const data = await res.json();
 
       if (!res.ok) {
-        setErrorMessage(data.error || "Something went wrong.");
+        setServerError(data.error || "Something went wrong.");
         setStatus("error");
         return;
       }
@@ -76,7 +118,7 @@ export default function ContactForm({
       setPreferredApp("");
       setMessage("");
     } catch {
-      setErrorMessage("Network error. Please try again.");
+      setServerError("Network error. Please try again.");
       setStatus("error");
     }
   }
@@ -92,67 +134,111 @@ export default function ContactForm({
     );
   }
 
+  // Base input classes
+  const baseInput =
+    "w-full rounded-lg bg-gray-900 border px-4 py-3 text-white placeholder-gray-500 focus:outline-none transition";
+  const normalBorder = "border-gray-800 focus:border-gray-600";
+  const errorBorder = "border-red-500/60 focus:border-red-500";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      {/* Name */}
       <div>
-        <label className="block text-sm text-gray-400 mb-2">
-          Name <span className="text-red-400">*</span>
-        </label>
+        <label className="block text-sm text-gray-400 mb-2">Name</label>
         <input
           type="text"
-          required
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          data-field="name"
+          onChange={(e) => {
+            setName(e.target.value);
+            if (errors.name)
+              setErrors((prev) => ({ ...prev, name: undefined }));
+          }}
           placeholder="Your name"
-          className="w-full rounded-lg bg-gray-900 border border-gray-800 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+          className={`${baseInput} ${errors.name ? errorBorder : normalBorder}`}
         />
+        {errors.name && (
+          <p className="text-xs text-red-400 mt-1.5">{errors.name}</p>
+        )}
       </div>
 
+      {/* Email */}
       <div>
-        <label className="block text-sm text-gray-400 mb-2">
-          Email <span className="text-red-400">*</span>
-        </label>
+        <label className="block text-sm text-gray-400 mb-2">Email</label>
         <input
           type="email"
-          required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          data-field="email"
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (errors.email)
+              setErrors((prev) => ({ ...prev, email: undefined }));
+          }}
           placeholder="you@example.com"
-          className="w-full rounded-lg bg-gray-900 border border-gray-800 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+          className={`${baseInput} ${
+            errors.email ? errorBorder : normalBorder
+          }`}
         />
+        {errors.email && (
+          <p className="text-xs text-red-400 mt-1.5">{errors.email}</p>
+        )}
       </div>
 
+      {/* Hire-only fields */}
       {isHire && (
         <>
           <div>
             <label className="block text-sm text-gray-400 mb-2">
-              Phone number <span className="text-red-400">*</span>
+              Phone number
             </label>
             <input
               type="tel"
-              required
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              data-field="phone"
+              onChange={(e) => {
+                setPhone(e.target.value);
+                if (errors.phone)
+                  setErrors((prev) => ({ ...prev, phone: undefined }));
+              }}
               placeholder="+234 800 000 0000"
-              className="w-full rounded-lg bg-gray-900 border border-gray-800 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+              className={`${baseInput} ${
+                errors.phone ? errorBorder : normalBorder
+              }`}
             />
-            <p className="text-xs text-gray-600 mt-1">
-              Include your country code so I can reach you on messaging apps.
-            </p>
+            {errors.phone ? (
+              <p className="text-xs text-red-400 mt-1.5">{errors.phone}</p>
+            ) : (
+              <p className="text-xs text-gray-600 mt-1.5">
+                Include your country code so I can reach you on messaging apps.
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm text-gray-400 mb-2">
-              Preferred contact app <span className="text-red-400">*</span>
+              Preferred contact app
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div
+              data-field="preferredApp"
+              tabIndex={-1}
+              className={`grid grid-cols-2 gap-2 rounded-lg p-1 -m-1 ${
+                errors.preferredApp ? "ring-1 ring-red-500/60" : ""
+              }`}
+            >
               {APPS.map((app) => {
                 const active = preferredApp === app.value;
                 return (
                   <button
                     key={app.value}
                     type="button"
-                    onClick={() => setPreferredApp(app.value)}
+                    onClick={() => {
+                      setPreferredApp(app.value);
+                      if (errors.preferredApp)
+                        setErrors((prev) => ({
+                          ...prev,
+                          preferredApp: undefined,
+                        }));
+                    }}
                     className={`text-sm px-4 py-2.5 rounded-lg border transition text-center ${
                       active
                         ? "bg-white text-black border-white font-medium"
@@ -164,33 +250,50 @@ export default function ContactForm({
                 );
               })}
             </div>
-            <p className="text-xs text-gray-600 mt-2">
-              I&apos;ll reach out on the app you select here.
-            </p>
+            {errors.preferredApp ? (
+              <p className="text-xs text-red-400 mt-2">
+                {errors.preferredApp}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-600 mt-2">
+                I&apos;ll reach out on the app you select here.
+              </p>
+            )}
           </div>
         </>
       )}
 
+      {/* Message */}
       <div>
-        <label className="block text-sm text-gray-400 mb-2">
-          Message <span className="text-red-400">*</span>
-        </label>
+        <label className="block text-sm text-gray-400 mb-2">Message</label>
         <textarea
-          required
           rows={5}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          data-field="message"
+          onChange={(e) => {
+            setMessage(e.target.value);
+            if (errors.message)
+              setErrors((prev) => ({ ...prev, message: undefined }));
+          }}
           placeholder={
             isHire
               ? "Tell me about your project, budget, and timeline..."
               : "Tell me about your project..."
           }
-          className="w-full rounded-lg bg-gray-900 border border-gray-800 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
+          className={`${baseInput} ${
+            errors.message ? errorBorder : normalBorder
+          }`}
         />
+        {errors.message && (
+          <p className="text-xs text-red-400 mt-1.5">{errors.message}</p>
+        )}
       </div>
 
-      {status === "error" && (
-        <p className="text-sm text-red-400">{errorMessage}</p>
+      {/* Server-side error */}
+      {status === "error" && serverError && (
+        <div className="rounded-lg border border-red-900/50 bg-red-950/30 p-3">
+          <p className="text-sm text-red-400">{serverError}</p>
+        </div>
       )}
 
       <button
