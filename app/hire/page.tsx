@@ -5,7 +5,7 @@ export const metadata = {
   description: "Work with Tony on your next web project.",
 };
 
-const CALCOM_USERNAME = "tony"; // ← replace with your Cal.com username
+const CALCOM_USERNAME = "anthony-adeniyi-qonaxl";
 
 export default function HirePage() {
   return (

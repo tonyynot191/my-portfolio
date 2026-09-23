@@ -7,7 +7,7 @@ export default async function Home() {
   const allProjects = await getProjects();
   const featured = allProjects.filter((p) => p.featured).slice(0, 3);
 
-  const hasPhoto = false; // set to false to use the placeholder below
+  const hasPhoto = true; // set to false to use the placeholder below
 
   return (
     <>
@@ -58,6 +58,7 @@ export default async function Home() {
               database to polished UI.
             </p>
 
+            {/* Buttons row */}
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start mb-10">
               <Link
                 href="/projects"
@@ -71,8 +72,31 @@ export default async function Home() {
               >
                 Contact Me
               </Link>
+              <a
+                href="/resume.pdf"
+                download
+                className="border border-gray-700 px-6 py-3 rounded-lg font-medium text-white hover:border-gray-400 transition inline-flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Resume
+              </a>
             </div>
 
+            {/* Social links row */}
             <div className="flex gap-6 justify-center lg:justify-start text-sm text-gray-500">
               <a
                 href="https://github.com/tonyynot191"
@@ -80,28 +104,6 @@ export default async function Home() {
                 rel="noopener noreferrer"
                 className="hover:text-white transition"
               >
-                <a
-  href="/resume.pdf"
-  download
-  className="border border-gray-700 px-6 py-3 rounded-lg font-medium text-white hover:border-gray-400 transition inline-flex items-center gap-2"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="7 10 12 15 17 10" />
-    <line x1="12" y1="15" x2="12" y2="3" />
-  </svg>
-  Resume
-</a>
                 GitHub
               </a>
               <a
