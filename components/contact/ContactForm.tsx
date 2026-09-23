@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 
-export default function ContactForm() {
+export default function ContactForm({
+  source = "contact",
+}: {
+  source?: "contact" | "hire";
+}) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -20,7 +24,7 @@ export default function ContactForm() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, message }),
+        body: JSON.stringify({ name, email, message, source }),
       });
 
       const data = await res.json();
@@ -83,7 +87,11 @@ export default function ContactForm() {
           rows={5}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Tell me about your project..."
+          placeholder={
+            source === "hire"
+              ? "Tell me about your project, budget, and timeline..."
+              : "Tell me about your project..."
+          }
           className="w-full rounded-lg bg-gray-900 border border-gray-800 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600"
         />
       </div>

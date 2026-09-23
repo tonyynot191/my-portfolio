@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ContactForm from "@/components/contact/ContactForm";
 
 export const metadata = {
   title: "Hire Me",
@@ -55,9 +56,7 @@ export default function HirePage() {
 
       {/* Booking */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-white mb-3">
-          Book a call
-        </h2>
+        <h2 className="text-2xl font-bold text-white mb-3">Book a call</h2>
         <p className="text-gray-400 text-sm mb-6">
           Pick a time that works for you — 30 minutes, no obligation.
         </p>
@@ -71,9 +70,6 @@ export default function HirePage() {
             className="w-full"
           />
         </div>
-        <p className="text-xs text-gray-600 mt-3">
-          Prefer email? Use the contact form or email me directly below.
-        </p>
       </section>
 
       {/* Contact details */}
@@ -120,21 +116,16 @@ export default function HirePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <div className="rounded-xl border border-gray-800 bg-gradient-to-br from-purple-950/30 via-gray-900/40 to-blue-950/30 p-8 text-center">
-        <h3 className="text-xl font-semibold text-white mb-2">
-          Ready to start?
-        </h3>
-        <p className="text-gray-400 mb-6 text-sm">
-          Tell me about your project and I&apos;ll get back to you quickly.
+      {/* Embedded hire form */}
+      <section className="rounded-xl border border-gray-800 bg-gradient-to-br from-purple-950/20 via-gray-900/40 to-blue-950/20 p-6 md:p-8">
+        <h2 className="text-2xl font-bold text-white mb-2">
+          Tell me about your project
+        </h2>
+        <p className="text-gray-400 text-sm mb-6">
+          Share the details and I&apos;ll get back to you within 24 hours.
         </p>
-        <Link
-          href="/contact"
-          className="inline-block bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition"
-        >
-          Send a Message
-        </Link>
-      </div>
+        <ContactForm source="hire" />
+      </section>
     </div>
   );
 }

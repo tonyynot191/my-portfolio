@@ -1,7 +1,7 @@
 import ContactForm from "@/components/contact/ContactForm";
 
 export const metadata = {
-  title: "Contact | Tony",
+  title: "Contact",
   description: "Get in touch with Tony.",
 };
 
@@ -12,7 +12,7 @@ export default function ContactPage() {
       <p className="text-gray-400 mb-10">
         Have a project in mind, or just want to say hi? Send me a message.
       </p>
-      <ContactForm />
+      <ContactForm source="contact" />
     </div>
   );
 }

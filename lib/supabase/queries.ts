@@ -176,11 +176,13 @@ export async function getAdminStats() {
     unreadMessages: messages.count ?? 0,
   };
 }
+
 export type ContactMessage = {
   id: string;
   name: string;
   email: string;
   message: string;
+  source: string;
   read: boolean;
   createdAt: string;
 };
@@ -199,6 +201,7 @@ export async function getAllMessages(): Promise<ContactMessage[]> {
     name: row.name,
     email: row.email,
     message: row.message,
+    source: row.source ?? "contact",
     read: row.read,
     createdAt: row.created_at,
   }));
