@@ -34,14 +34,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Hire-specific validation
+    // Phone is required on BOTH forms
+  if (!phone || phone.replace(/\D/g, "").length < 7) {
+    return NextResponse.json(
+      { error: "A valid phone number is required." },
+      { status: 400 }
+    );
+  }
+
+  // Preferred app only required on hire
   if (isHire) {
-    if (!phone || phone.replace(/\D/g, "").length < 7) {
-      return NextResponse.json(
-        { error: "A valid phone number is required." },
-        { status: 400 }
-      );
-    }
     if (!preferredApp || !ALLOWED_APPS.includes(preferredApp)) {
       return NextResponse.json(
         { error: "Please select a preferred contact app." },
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest) {
   }
 
   const sourceValue = isHire ? "hire" : "contact";
-  const phoneValue = isHire ? phone.trim() : null;
+  const phoneValue = phone.trim();
   const appValue = isHire ? preferredApp : null;
 
   const supabase = await createClient();

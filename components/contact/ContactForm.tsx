@@ -41,7 +41,7 @@ export default function ContactForm({
     const next: Errors = {};
 
     if (!name.trim()) next.name = "Please enter your name.";
-    if (name.trim().length > 80) next.name = "Name is too long.";
+    else if (name.trim().length > 80) next.name = "Name is too long.";
 
     if (!email.trim()) {
       next.email = "Please enter your email.";
@@ -49,15 +49,16 @@ export default function ContactForm({
       next.email = "Please enter a valid email address.";
     }
 
-    if (isHire) {
-      if (!phone.trim()) {
-        next.phone = "Please enter your phone number.";
-      } else if (phone.replace(/\D/g, "").length < 7) {
-        next.phone = "Please enter a valid phone number with country code.";
-      }
-      if (!preferredApp) {
-        next.preferredApp = "Please select a preferred contact app.";
-      }
+    // Phone is required on BOTH forms now
+    if (!phone.trim()) {
+      next.phone = "Please enter your phone number.";
+    } else if (phone.replace(/\D/g, "").length < 7) {
+      next.phone = "Please enter a valid phone number with country code.";
+    }
+
+    // Preferred app only required on hire
+    if (isHire && !preferredApp) {
+      next.preferredApp = "Please select a preferred contact app.";
     }
 
     if (!message.trim()) {
@@ -75,7 +76,6 @@ export default function ContactForm({
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      // Focus the first invalid field
       const firstKey = Object.keys(validationErrors)[0];
       const el = document.querySelector<HTMLElement>(
         `[data-field="${firstKey}"]`
@@ -98,7 +98,7 @@ export default function ContactForm({
           email,
           message,
           source,
-          phone: isHire ? phone : undefined,
+          phone,
           preferredApp: isHire ? preferredApp : undefined,
         }),
       });
@@ -134,7 +134,6 @@ export default function ContactForm({
     );
   }
 
-  // Base input classes
   const baseInput =
     "w-full rounded-lg bg-gray-900 border px-4 py-3 text-white placeholder-gray-500 focus:outline-none transition";
   const normalBorder = "border-gray-800 focus:border-gray-600";
@@ -184,83 +183,82 @@ export default function ContactForm({
         )}
       </div>
 
-      {/* Hire-only fields */}
-      {isHire && (
-        <>
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              Phone number
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              data-field="phone"
-              onChange={(e) => {
-                setPhone(e.target.value);
-                if (errors.phone)
-                  setErrors((prev) => ({ ...prev, phone: undefined }));
-              }}
-              placeholder="+234 800 000 0000"
-              className={`${baseInput} ${
-                errors.phone ? errorBorder : normalBorder
-              }`}
-            />
-            {errors.phone ? (
-              <p className="text-xs text-red-400 mt-1.5">{errors.phone}</p>
-            ) : (
-              <p className="text-xs text-gray-600 mt-1.5">
-                Include your country code so I can reach you on messaging apps.
-              </p>
-            )}
-          </div>
+      {/* Phone — now on BOTH forms */}
+      <div>
+        <label className="block text-sm text-gray-400 mb-2">
+          Phone number
+        </label>
+        <input
+          type="tel"
+          value={phone}
+          data-field="phone"
+          onChange={(e) => {
+            setPhone(e.target.value);
+            if (errors.phone)
+              setErrors((prev) => ({ ...prev, phone: undefined }));
+          }}
+          placeholder="+234 800 000 0000"
+          className={`${baseInput} ${
+            errors.phone ? errorBorder : normalBorder
+          }`}
+        />
+        {errors.phone ? (
+          <p className="text-xs text-red-400 mt-1.5">{errors.phone}</p>
+        ) : (
+          <p className="text-xs text-gray-600 mt-1.5">
+            Include your country code so I can reach you on messaging apps.
+          </p>
+        )}
+      </div>
 
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              Preferred contact app
-            </label>
-            <div
-              data-field="preferredApp"
-              tabIndex={-1}
-              className={`grid grid-cols-2 gap-2 rounded-lg p-1 -m-1 ${
-                errors.preferredApp ? "ring-1 ring-red-500/60" : ""
-              }`}
-            >
-              {APPS.map((app) => {
-                const active = preferredApp === app.value;
-                return (
-                  <button
-                    key={app.value}
-                    type="button"
-                    onClick={() => {
-                      setPreferredApp(app.value);
-                      if (errors.preferredApp)
-                        setErrors((prev) => ({
-                          ...prev,
-                          preferredApp: undefined,
-                        }));
-                    }}
-                    className={`text-sm px-4 py-2.5 rounded-lg border transition text-center ${
-                      active
-                        ? "bg-white text-black border-white font-medium"
-                        : "border-gray-800 text-gray-300 hover:border-gray-600"
-                    }`}
-                  >
-                    {app.label}
-                  </button>
-                );
-              })}
-            </div>
-            {errors.preferredApp ? (
-              <p className="text-xs text-red-400 mt-2">
-                {errors.preferredApp}
-              </p>
-            ) : (
-              <p className="text-xs text-gray-600 mt-2">
-                I&apos;ll reach out on the app you select here.
-              </p>
-            )}
+      {/* Preferred contact app — HIRE ONLY */}
+      {isHire && (
+        <div>
+          <label className="block text-sm text-gray-400 mb-2">
+            Preferred contact app
+          </label>
+          <div
+            data-field="preferredApp"
+            tabIndex={-1}
+            className={`grid grid-cols-2 gap-2 rounded-lg p-1 -m-1 ${
+              errors.preferredApp ? "ring-1 ring-red-500/60" : ""
+            }`}
+          >
+            {APPS.map((app) => {
+              const active = preferredApp === app.value;
+              return (
+                <button
+                  key={app.value}
+                  type="button"
+                  onClick={() => {
+                    setPreferredApp(app.value);
+                    if (errors.preferredApp)
+                      setErrors((prev) => ({
+                        ...prev,
+                        preferredApp: undefined,
+                      }));
+                  }}
+                  className={`text-sm px-4 py-2.5 rounded-lg border transition text-center ${
+                    active
+                      ? "bg-white text-black border-white font-medium"
+                      : "border-gray-800 text-gray-300 hover:border-gray-600"
+                  }`}
+                >
+                  {app.label}
+                </button>
+              );
+            })}
           </div>
-        </>
+          {errors.preferredApp ? (
+            <p className="text-xs text-red-400 mt-2">
+              {errors.preferredApp}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-600 mt-2">
+              I&apos;ll reach out on the app you select here.
+            </p>
+          )}
+        </div>
       )}
 
       {/* Message */}
@@ -289,7 +287,6 @@ export default function ContactForm({
         )}
       </div>
 
-      {/* Server-side error */}
       {status === "error" && serverError && (
         <div className="rounded-lg border border-red-900/50 bg-red-950/30 p-3">
           <p className="text-sm text-red-400">{serverError}</p>
