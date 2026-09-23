@@ -176,3 +176,30 @@ export async function getAdminStats() {
     unreadMessages: messages.count ?? 0,
   };
 }
+export type ContactMessage = {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+};
+
+export async function getAllMessages(): Promise<ContactMessage[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("contact_messages")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    message: row.message,
+    read: row.read,
+    createdAt: row.created_at,
+  }));
+}

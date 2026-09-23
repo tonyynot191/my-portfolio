@@ -5,6 +5,10 @@
   --foreground: #171717;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -143,4 +147,28 @@ body {
 .link-underline:hover::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+/* Page transition */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: page-enter 0.4s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .animate-blob,
+  .animate-float,
+  .animate-fade-in-up {
+    animation: none;
+  }
 }
