@@ -183,6 +183,8 @@ export type ContactMessage = {
   email: string;
   message: string;
   source: string;
+  phone: string | null;
+  preferredApp: string | null;
   read: boolean;
   createdAt: string;
 };
@@ -202,6 +204,8 @@ export async function getAllMessages(): Promise<ContactMessage[]> {
     email: row.email,
     message: row.message,
     source: row.source ?? "contact",
+    phone: row.phone ?? null,
+    preferredApp: row.preferred_app ?? null,
     read: row.read,
     createdAt: row.created_at,
   }));

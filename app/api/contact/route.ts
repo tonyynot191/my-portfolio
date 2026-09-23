@@ -4,9 +4,14 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function POST(req: NextRequest) {
-  const { name, email, message, source } = await req.json();
+const ALLOWED_APPS = ["whatsapp", "whatsapp_business", "telegram", "snapchat"];
 
+export async function POST(req: NextRequest) {
+  const { name, email, message, source, phone, preferredApp } = await req.json();
+
+  const isHire = source === "hire";
+
+  // Basic validation
   if (!name || !email || !message) {
     return NextResponse.json(
       { error: "All fields are required." },
@@ -29,7 +34,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const sourceValue = source === "hire" ? "hire" : "contact";
+  // Hire-specific validation
+  if (isHire) {
+    if (!phone || phone.replace(/\D/g, "").length < 7) {
+      return NextResponse.json(
+        { error: "A valid phone number is required." },
+        { status: 400 }
+      );
+    }
+    if (!preferredApp || !ALLOWED_APPS.includes(preferredApp)) {
+      return NextResponse.json(
+        { error: "Please select a preferred contact app." },
+        { status: 400 }
+      );
+    }
+  }
+
+  const sourceValue = isHire ? "hire" : "contact";
+  const phoneValue = isHire ? phone.trim() : null;
+  const appValue = isHire ? preferredApp : null;
 
   const supabase = await createClient();
   const { error: dbError } = await supabase.from("contact_messages").insert({
@@ -37,13 +60,23 @@ export async function POST(req: NextRequest) {
     email: email.trim().toLowerCase(),
     message: message.trim(),
     source: sourceValue,
+    phone: phoneValue,
+    preferred_app: appValue,
   });
 
   if (dbError) {
     console.error("DB insert failed:", dbError);
   }
 
-  const subjectPrefix = sourceValue === "hire" ? "[HIRE] " : "";
+  // Human-readable app name for the email
+  const appLabel: Record<string, string> = {
+    whatsapp: "WhatsApp",
+    whatsapp_business: "WhatsApp Business",
+    telegram: "Telegram",
+    snapchat: "Snapchat",
+  };
+
+  const subjectPrefix = isHire ? "[HIRE] " : "";
 
   try {
     await resend.emails.send({
@@ -53,8 +86,14 @@ export async function POST(req: NextRequest) {
       subject: `${subjectPrefix}New message from ${name}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px;">
-          <h2 style="color: #111;">New ${sourceValue === "hire" ? "Hire" : "Contact"} Form Submission</h2>
+          <h2 style="color: #111;">New ${isHire ? "Hire" : "Contact"} Form Submission</h2>
           <p><strong>From:</strong> ${name} &lt;${email}&gt;</p>
+          ${
+            isHire && phone
+              ? `<p><strong>Phone:</strong> ${phone}</p>
+                 <p><strong>Preferred contact:</strong> ${appLabel[appValue!] ?? appValue}</p>`
+              : ""
+          }
           <hr style="border: none; border-top: 1px solid #eee;" />
           <p style="white-space: pre-wrap; line-height: 1.6;">${message.replace(
             /\n/g,
