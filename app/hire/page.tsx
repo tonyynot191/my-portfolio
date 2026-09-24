@@ -1,5 +1,5 @@
-import Link from "next/link";
 import ContactForm from "@/components/contact/ContactForm";
+import ContactChannels from "@/components/contact/ContactChannels";
 
 export const metadata = {
   title: "Hire Me",
@@ -115,6 +115,9 @@ export default function HirePage() {
           </a>
         </div>
       </section>
+
+      {/* Contact channels (WhatsApp, Telegram, Snapchat) */}
+      <ContactChannels />
 
       {/* Embedded hire form */}
       <section className="rounded-xl border border-gray-800 bg-gradient-to-br from-purple-950/20 via-gray-900/40 to-blue-950/20 p-6 md:p-8">

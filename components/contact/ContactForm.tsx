@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import {
+  WhatsAppIcon,
+  WhatsAppBusinessIcon,
+  TelegramIcon,
+  SnapchatIcon,
+} from "./MessagingIcons";
+import { CONTACT_CHANNELS, whatsappUrl, telegramUrl } from "@/lib/contact-channels";
 
 const APPS = [
-  { value: "whatsapp", label: "WhatsApp" },
-  { value: "whatsapp_business", label: "WhatsApp Business" },
-  { value: "telegram", label: "Telegram" },
-  { value: "snapchat", label: "Snapchat" },
+  { value: "whatsapp", label: "WhatsApp", icon: WhatsAppIcon },
+  { value: "whatsapp_business", label: "WhatsApp Business", icon: WhatsAppBusinessIcon },
+  { value: "telegram", label: "Telegram", icon: TelegramIcon },
+  { value: "snapchat", label: "Snapchat", icon: SnapchatIcon },
 ] as const;
 
 type AppValue = (typeof APPS)[number]["value"];
@@ -32,42 +39,39 @@ export default function ContactForm({
   const [preferredApp, setPreferredApp] = useState<AppValue | "">("");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<Errors>({});
-  const [status, setStatus] = useState<
-    "idle" | "loading" | "sent" | "error"
-  >("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [serverError, setServerError] = useState("");
 
   function validate(): Errors {
     const next: Errors = {};
-
     if (!name.trim()) next.name = "Please enter your name.";
     else if (name.trim().length > 80) next.name = "Name is too long.";
-
-    if (!email.trim()) {
-      next.email = "Please enter your email.";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email.trim()) next.email = "Please enter your email.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       next.email = "Please enter a valid email address.";
-    }
-
-    // Phone is required on BOTH forms now
-    if (!phone.trim()) {
-      next.phone = "Please enter your phone number.";
-    } else if (phone.replace(/\D/g, "").length < 7) {
+    if (!phone.trim()) next.phone = "Please enter your phone number.";
+    else if (phone.replace(/\D/g, "").length < 7)
       next.phone = "Please enter a valid phone number with country code.";
-    }
-
-    // Preferred app only required on hire
-    if (isHire && !preferredApp) {
+    if (isHire && !preferredApp)
       next.preferredApp = "Please select a preferred contact app.";
-    }
-
-    if (!message.trim()) {
-      next.message = "Please enter a message.";
-    } else if (message.trim().length < 5) {
+    if (!message.trim()) next.message = "Please enter a message.";
+    else if (message.trim().length < 5)
       next.message = "Message must be at least 5 characters.";
-    }
-
     return next;
+  }
+
+  function openPreferredApp() {
+    if (!isHire || !preferredApp) return;
+    const text = `Hi Tony, I'm ${name}. ${message}\n\nEmail: ${email}\nPhone: ${phone}`;
+
+    if (preferredApp === "whatsapp") {
+      window.open(whatsappUrl(CONTACT_CHANNELS.whatsapp, text), "_blank");
+    } else if (preferredApp === "whatsapp_business") {
+      window.open(whatsappUrl(CONTACT_CHANNELS.whatsappBusiness, text), "_blank");
+    } else if (preferredApp === "telegram") {
+      window.open(telegramUrl(CONTACT_CHANNELS.telegram, text), "_blank");
+    }
+    // Snapchat doesn't support pre-filled message deep links — skip
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -77,9 +81,7 @@ export default function ContactForm({
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       const firstKey = Object.keys(validationErrors)[0];
-      const el = document.querySelector<HTMLElement>(
-        `[data-field="${firstKey}"]`
-      );
+      const el = document.querySelector<HTMLElement>(`[data-field="${firstKey}"]`);
       el?.focus();
       el?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -112,6 +114,9 @@ export default function ContactForm({
       }
 
       setStatus("sent");
+      // After success, open the visitor's chosen app with a pre-filled message
+      openPreferredApp();
+
       setName("");
       setEmail("");
       setPhone("");
@@ -128,7 +133,9 @@ export default function ContactForm({
       <div className="rounded-xl border border-green-900/50 bg-green-950/30 p-8 text-center">
         <p className="text-green-400 font-medium mb-1">✓ Message sent</p>
         <p className="text-sm text-gray-400">
-          Thanks for reaching out. I&apos;ll get back to you within 24 hours.
+          {isHire && preferredApp
+            ? "Your messaging app should have opened with your message ready to send."
+            : "Thanks for reaching out. I'll get back to you within 24 hours."}
         </p>
       </div>
     );
@@ -141,7 +148,6 @@ export default function ContactForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      {/* Name */}
       <div>
         <label className="block text-sm text-gray-400 mb-2">Name</label>
         <input
@@ -150,18 +156,14 @@ export default function ContactForm({
           data-field="name"
           onChange={(e) => {
             setName(e.target.value);
-            if (errors.name)
-              setErrors((prev) => ({ ...prev, name: undefined }));
+            if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
           }}
           placeholder="Your name"
           className={`${baseInput} ${errors.name ? errorBorder : normalBorder}`}
         />
-        {errors.name && (
-          <p className="text-xs text-red-400 mt-1.5">{errors.name}</p>
-        )}
+        {errors.name && <p className="text-xs text-red-400 mt-1.5">{errors.name}</p>}
       </div>
 
-      {/* Email */}
       <div>
         <label className="block text-sm text-gray-400 mb-2">Email</label>
         <input
@@ -170,37 +172,26 @@ export default function ContactForm({
           data-field="email"
           onChange={(e) => {
             setEmail(e.target.value);
-            if (errors.email)
-              setErrors((prev) => ({ ...prev, email: undefined }));
+            if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
           }}
           placeholder="you@example.com"
-          className={`${baseInput} ${
-            errors.email ? errorBorder : normalBorder
-          }`}
+          className={`${baseInput} ${errors.email ? errorBorder : normalBorder}`}
         />
-        {errors.email && (
-          <p className="text-xs text-red-400 mt-1.5">{errors.email}</p>
-        )}
+        {errors.email && <p className="text-xs text-red-400 mt-1.5">{errors.email}</p>}
       </div>
 
-      {/* Phone — now on BOTH forms */}
       <div>
-        <label className="block text-sm text-gray-400 mb-2">
-          Phone number
-        </label>
+        <label className="block text-sm text-gray-400 mb-2">Phone number</label>
         <input
           type="tel"
           value={phone}
           data-field="phone"
           onChange={(e) => {
             setPhone(e.target.value);
-            if (errors.phone)
-              setErrors((prev) => ({ ...prev, phone: undefined }));
+            if (errors.phone) setErrors((p) => ({ ...p, phone: undefined }));
           }}
           placeholder="+234 800 000 0000"
-          className={`${baseInput} ${
-            errors.phone ? errorBorder : normalBorder
-          }`}
+          className={`${baseInput} ${errors.phone ? errorBorder : normalBorder}`}
         />
         {errors.phone ? (
           <p className="text-xs text-red-400 mt-1.5">{errors.phone}</p>
@@ -211,7 +202,6 @@ export default function ContactForm({
         )}
       </div>
 
-      {/* Preferred contact app — HIRE ONLY */}
       {isHire && (
         <div>
           <label className="block text-sm text-gray-400 mb-2">
@@ -225,6 +215,7 @@ export default function ContactForm({
             }`}
           >
             {APPS.map((app) => {
+              const Icon = app.icon;
               const active = preferredApp === app.value;
               return (
                 <button
@@ -233,26 +224,22 @@ export default function ContactForm({
                   onClick={() => {
                     setPreferredApp(app.value);
                     if (errors.preferredApp)
-                      setErrors((prev) => ({
-                        ...prev,
-                        preferredApp: undefined,
-                      }));
+                      setErrors((p) => ({ ...p, preferredApp: undefined }));
                   }}
-                  className={`text-sm px-4 py-2.5 rounded-lg border transition text-center ${
+                  className={`flex items-center justify-center gap-2 text-sm px-4 py-2.5 rounded-lg border transition ${
                     active
                       ? "bg-white text-black border-white font-medium"
                       : "border-gray-800 text-gray-300 hover:border-gray-600"
                   }`}
                 >
-                  {app.label}
+                  <Icon className="w-5 h-5" />
+                  <span>{app.label}</span>
                 </button>
               );
             })}
           </div>
           {errors.preferredApp ? (
-            <p className="text-xs text-red-400 mt-2">
-              {errors.preferredApp}
-            </p>
+            <p className="text-xs text-red-400 mt-2">{errors.preferredApp}</p>
           ) : (
             <p className="text-xs text-gray-600 mt-2">
               I&apos;ll reach out on the app you select here.
@@ -261,7 +248,6 @@ export default function ContactForm({
         </div>
       )}
 
-      {/* Message */}
       <div>
         <label className="block text-sm text-gray-400 mb-2">Message</label>
         <textarea
@@ -270,21 +256,16 @@ export default function ContactForm({
           data-field="message"
           onChange={(e) => {
             setMessage(e.target.value);
-            if (errors.message)
-              setErrors((prev) => ({ ...prev, message: undefined }));
+            if (errors.message) setErrors((p) => ({ ...p, message: undefined }));
           }}
           placeholder={
             isHire
               ? "Tell me about your project, budget, and timeline..."
               : "Tell me about your project..."
           }
-          className={`${baseInput} ${
-            errors.message ? errorBorder : normalBorder
-          }`}
+          className={`${baseInput} ${errors.message ? errorBorder : normalBorder}`}
         />
-        {errors.message && (
-          <p className="text-xs text-red-400 mt-1.5">{errors.message}</p>
-        )}
+        {errors.message && <p className="text-xs text-red-400 mt-1.5">{errors.message}</p>}
       </div>
 
       {status === "error" && serverError && (

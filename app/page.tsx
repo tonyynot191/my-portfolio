@@ -7,7 +7,7 @@ export default async function Home() {
   const allProjects = await getProjects();
   const featured = allProjects.filter((p) => p.featured).slice(0, 3);
 
-  const hasPhoto = true; // set to false to use the placeholder below
+  const hasPhoto = false; // set to false to use the placeholder below
 
   return (
     <>
