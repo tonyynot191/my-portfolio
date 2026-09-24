@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getProjects } from "@/lib/supabase/queries";
 import ProjectCard from "@/components/projects/ProjectCard";
+import SocialLinks from "@/components/shared/SocialLinks";
 
 export default async function Home() {
   const allProjects = await getProjects();
@@ -97,32 +98,7 @@ export default async function Home() {
             </div>
 
             {/* Social links row */}
-            <div className="flex gap-6 justify-center lg:justify-start text-sm text-gray-500">
-              <a
-                href="https://github.com/tonyynot191"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition"
-              >
-                GitHub
-              </a>
-              <a
-                href="https://linkedin.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition"
-              >
-                LinkedIn
-              </a>
-              <a
-                href="https://x.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-white transition"
-              >
-                X
-              </a>
-            </div>
+            <SocialLinks />
           </div>
 
           {/* Right: photo or fallback */}
@@ -178,9 +154,24 @@ export default async function Home() {
             </div>
             <Link
               href="/projects"
-              className="text-sm text-gray-400 hover:text-white transition hidden md:inline"
+              className="group hidden md:inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
             >
-              View all →
+              <span>View all projects</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform duration-200 group-hover:translate-x-1"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </Link>
           </div>
 
@@ -193,9 +184,24 @@ export default async function Home() {
           <div className="mt-10 md:hidden text-center">
             <Link
               href="/projects"
-              className="text-sm text-gray-400 hover:text-white transition"
+              className="group inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
             >
-              View all projects →
+              <span>View all projects</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform duration-200 group-hover:translate-x-1"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </Link>
           </div>
         </section>
